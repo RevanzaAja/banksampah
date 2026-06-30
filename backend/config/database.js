@@ -1,14 +1,15 @@
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
+const pg = require('pg'); // Explicitly require pg for Vercel bundler
 
 const isProduction = process.env.NODE_ENV === 'production';
 const dbUrl = isProduction ? process.env.DATABASE_URL : (process.env.DIRECT_URL || process.env.DATABASE_URL);
 
 if (!dbUrl) {
-  throw new Error("Missing DATABASE_URL or DIRECT_URL in environment variables.");
+  console.error("Missing DATABASE_URL or DIRECT_URL in environment variables.");
 }
 
-const sequelize = new Sequelize(dbUrl, {
+const sequelize = new Sequelize(dbUrl || 'postgres://dummy:dummy@localhost:5432/dummy', {
   dialect: 'postgres',
   dialectOptions: {
     ssl: {
