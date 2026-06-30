@@ -1,0 +1,10 @@
+{
+  "name": "bank-sampah-root",
+  "version": "1.0.0",
+  "description": "Root configuration to run Bank Sampah backend and frontend concurrently",
+  "scripts": {
+    "backend": "npm run dev --prefix backend",
+    "frontend": "npm run dev --prefix frontend",
+    "dev": "npx concurrently \"npm run backend\" \"npm run frontend\""
+  }
+}
