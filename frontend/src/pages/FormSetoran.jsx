@@ -207,7 +207,7 @@ export default function FormSetoran() {
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-slate-800 bg-slate-50 hover:bg-slate-100/50 cursor-pointer"
               >
-                {Object.keys(WAste_PRICES).map(type => (
+                {Object.keys(WASTE_PRICES).map(type => (
                   <option key={type} value={type}>
                     {type}
                   </option>
