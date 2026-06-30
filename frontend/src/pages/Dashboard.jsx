@@ -1,61 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Weight, Banknote, Users, BarChart3, TrendingUp, HelpCircle } from 'lucide-react';
-
-const formatRupiah = (value) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(value);
-};
-
-const INDONESIAN_MONTHS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-  'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
-];
+import React from 'react';
+import { BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Weight, Banknote, Users, BarChart3, HelpCircle } from 'lucide-react';
+import { formatRupiah, INDONESIAN_MONTHS } from '../constants';
+import useFetch from '../hooks/useFetch';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 export default function Dashboard() {
-  const [deposits, setDeposits] = useState([]);
-  const [sales, setSales] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data: depositsData, loading: loadingDep, error: errorDep } = useFetch('/api/setoran');
+  const { data: salesData, loading: loadingSales, error: errorSales } = useFetch('/api/penjualan');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [depRes, salesRes] = await Promise.all([
-          fetch('http://localhost:5000/api/setoran'),
-          fetch('http://localhost:5000/api/penjualan')
-        ]);
+  const loading = loadingDep || loadingSales;
+  const error = errorDep || errorSales;
+  const deposits = depositsData || [];
+  const sales = salesData || [];
 
-        if (!depRes.ok || !salesRes.ok) {
-          throw new Error('Gagal memuat data dari server.');
-        }
-
-        const depData = await depRes.json();
-        const salesData = await salesRes.json();
-
-        setDeposits(depData);
-        setSales(salesData);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
   if (error) {
     return (

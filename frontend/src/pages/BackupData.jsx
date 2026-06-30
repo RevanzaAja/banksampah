@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Database, Download, Upload, CheckCircle2, AlertCircle } from 'lucide-react';
+import { api } from '../services/api';
 
 export default function BackupData() {
   const [file, setFile] = useState(null);
@@ -7,25 +8,14 @@ export default function BackupData() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Trigger download of SQL file
+  // Trigger download of JSON file
   const handleExport = async () => {
     try {
       setError(null);
       setSuccess(null);
-      const res = await fetch('http://localhost:5000/api/backup/export');
-      if (!res.ok) throw new Error('Gagal mengekspor database.');
-      
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `backup-banksampah-${new Date().toISOString().split('T')[0]}.sql`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-      setSuccess('Database berhasil diekspor sebagai file SQL.');
+      const filename = `backup-banksampah-${new Date().toISOString().split('T')[0]}.json`;
+      await api.download('/api/backup/export', filename);
+      setSuccess('Database berhasil diekspor sebagai file JSON.');
     } catch (err) {
       setError(err.message);
     }
@@ -41,7 +31,7 @@ export default function BackupData() {
   const handleRestore = async (e) => {
     e.preventDefault();
     if (!file) {
-      setError('Silakan pilih file SQL cadangan terlebih dahulu.');
+      setError('Silakan pilih file JSON cadangan terlebih dahulu.');
       return;
     }
 
@@ -51,16 +41,9 @@ export default function BackupData() {
 
     const reader = new FileReader();
     reader.onload = async (event) => {
-      const sqlContent = event.target.result;
+      const jsonContent = event.target.result;
       try {
-        const res = await fetch('http://localhost:5000/api/backup/restore', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sql: sqlContent })
-        });
-        
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.message || 'Gagal memulihkan database.');
+        const result = await api.post('/api/backup/restore', { data: jsonContent });
 
         setSuccess(result.message || 'Database berhasil dipulihkan.');
         setFile(null);
@@ -73,7 +56,7 @@ export default function BackupData() {
       }
     };
     reader.onerror = () => {
-      setError('Gagal membaca file SQL.');
+      setError('Gagal membaca file JSON.');
       setLoading(false);
     };
     reader.readAsText(file);
@@ -143,7 +126,7 @@ export default function BackupData() {
               <input
                 type="file"
                 id="sqlFile"
-                accept=".sql"
+                accept=".json"
                 onChange={handleFileChange}
                 className="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
               />

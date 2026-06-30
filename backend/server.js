@@ -2,10 +2,11 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-const db = require('./config/db');
+const { initModels, sequelize } = require('./models');
 const setoranRoutes = require('./routes/setoran');
 const penjualanRoutes = require('./routes/penjualan');
 const backupRoutes = require('./routes/backup');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,14 +22,22 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Initialize DB Connection
-db.initDb();
+initModels();
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  let dbStatus = 'disconnected';
+  try {
+    await sequelize.authenticate();
+    dbStatus = 'connected';
+  } catch (err) {
+    dbStatus = 'error';
+  }
+
   res.json({
     status: 'online',
     timestamp: new Date(),
-    databaseMode: db.isMock() ? 'mock-in-memory' : 'mysql'
+    database: dbStatus
   });
 });
 
@@ -38,10 +47,7 @@ app.use('/api/penjualan', penjualanRoutes);
 app.use('/api/backup', backupRoutes);
 
 // Error Handling Middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Terjadi kesalahan sistem internal.' });
-});
+app.use(errorHandler);
 
 // Start Server
 app.listen(PORT, () => {

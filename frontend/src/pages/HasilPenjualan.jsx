@@ -1,27 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Banknote, Percent, Weight, ChevronRight, Calculator, AlertCircle, HelpCircle } from 'lucide-react';
-
-const formatRupiah = (value) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(value);
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-};
+import { formatRupiah, formatDate } from '../constants';
+import { api } from '../services/api';
+import useFetch from '../hooks/useFetch';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 export default function HasilPenjualan() {
-  const [sales, setSales] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data: salesData, loading, error, refetch: fetchSales } = useFetch('/api/penjualan');
+  const sales = salesData || [];
 
   // Form input state
   const [form, setForm] = useState({
@@ -78,18 +64,11 @@ export default function HasilPenjualan() {
     setSubmitLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/penjualan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tanggal_penjualan: form.tanggal_penjualan,
-          total_berat: beratNum,
-          total_hasil_penjualan: hasilNum
-        })
+      await api.post('/api/penjualan', {
+        tanggal_penjualan: form.tanggal_penjualan,
+        total_berat: beratNum,
+        total_hasil_penjualan: hasilNum
       });
-
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || 'Gagal menyimpan data penjualan.');
 
       // Reset form
       setForm({
@@ -112,9 +91,7 @@ export default function HasilPenjualan() {
     setCalculationResult(null);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/penjualan/${saleId}/pembagian`);
-      if (!res.ok) throw new Error('Gagal menghitung pembagian dana.');
-      const result = await res.json();
+      const result = await api.get(`/api/penjualan/${saleId}/pembagian`);
       setCalculationResult(result);
     } catch (err) {
       alert('Error kalkulasi: ' + err.message);
@@ -292,9 +269,7 @@ export default function HasilPenjualan() {
             </div>
 
             {loading ? (
-              <div className="flex justify-center p-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-              </div>
+              <LoadingSpinner />
             ) : sales.length === 0 ? (
               <div className="p-8 text-center text-slate-400">
                 Belum ada data penjualan BSM yang terinput.

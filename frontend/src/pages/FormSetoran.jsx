@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Recycle, AlertCircle, CheckCircle2 } from 'lucide-react';
-
-const WAste_PRICES = {
-  'Plastik': 4000,
-  'Kertas': 2000,
-  'Kardus': 3000,
-  'Kaleng': 8000,
-  'Botol': 5000,
-  'Lainnya': 1000
-};
+import { WASTE_PRICES, WASTE_TYPES, RT_LIST } from '../constants';
+import { api } from '../services/api';
 
 export default function FormSetoran() {
   const getTodayDate = () => {
@@ -21,7 +14,7 @@ export default function FormSetoran() {
     tanggal_setor: getTodayDate(),
     jenis_sampah: 'Plastik',
     berat: '',
-    harga_per_kg: String(WAste_PRICES['Plastik']),
+    harga_per_kg: String(WASTE_PRICES['Plastik']),
     keterangan: ''
   });
 
@@ -31,10 +24,10 @@ export default function FormSetoran() {
 
   // Automatically update standard price per kg when waste type changes
   useEffect(() => {
-    if (WAste_PRICES[formData.jenis_sampah]) {
+    if (WASTE_PRICES[formData.jenis_sampah]) {
       setFormData(prev => ({
         ...prev,
-        harga_per_kg: String(WAste_PRICES[formData.jenis_sampah])
+        harga_per_kg: String(WASTE_PRICES[formData.jenis_sampah])
       }));
     }
   }, [formData.jenis_sampah]);
@@ -72,22 +65,12 @@ export default function FormSetoran() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/setoran', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          rt: Number(formData.rt),
-          berat: beratNum,
-          harga_per_kg: hargaNum
-        })
+      await api.post('/api/setoran', {
+        ...formData,
+        rt: Number(formData.rt),
+        berat: beratNum,
+        harga_per_kg: hargaNum
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Terjadi kesalahan saat menyimpan data.');
-      }
 
       setSuccess(true);
       // Reset form (keeping RT and Date the same for consecutive entry comfort)

@@ -1,56 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { downloadPDFPerRT } from '../utils/pdfGenerator';
+import { downloadPDFPerRT } from '../services/pdfGenerator';
 import { Users, FileText, Send, Calendar, AlertCircle } from 'lucide-react';
-
-const formatRupiah = (value) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(value);
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-};
+import { formatRupiah, formatDate } from '../constants';
+import useFetch from '../hooks/useFetch';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 export default function RekapRT() {
-  const [deposits, setDeposits] = useState([]);
-  const [rtRecaps, setRtRecaps] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: depositsData, loading: loadingDep } = useFetch('/api/setoran');
+  const { data: recapData, loading: loadingRecap } = useFetch('/api/setoran/rekap-rt');
+  
+  const loading = loadingDep || loadingRecap;
+  const deposits = depositsData || [];
+  const rtRecaps = recapData || [];
+  
   const [selectedRT, setSelectedRT] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [depRes, recapRes] = await Promise.all([
-        fetch('http://localhost:5000/api/setoran'),
-        fetch('http://localhost:5000/api/setoran/rekap-rt')
-      ]);
-
-      if (!depRes.ok || !recapRes.ok) throw new Error('Gagal memuat data.');
-
-      const depData = await depRes.ok ? await depRes.json() : [];
-      const recapData = await recapRes.ok ? await recapRes.json() : [];
-
-      setDeposits(depData);
-      setRtRecaps(recapData);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   // Filter deposits for the selected RT and selected Date
   const selectedRows = deposits.filter(
@@ -112,9 +76,7 @@ export default function RekapRT() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-        </div>
+        <LoadingSpinner />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           

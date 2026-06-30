@@ -1,47 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { downloadPDFPerTanggal } from '../utils/pdfGenerator';
+import { downloadPDFPerTanggal } from '../services/pdfGenerator';
 import { Calendar, FileText, Send, AlertCircle, Table } from 'lucide-react';
-
-const formatRupiah = (value) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(value);
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-};
+import { formatRupiah, formatDate } from '../constants';
+import useFetch from '../hooks/useFetch';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 export default function RekapTanggal() {
-  const [deposits, setDeposits] = useState([]);
+  const { data, loading } = useFetch('/api/setoran');
+  const deposits = data || [];
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchRecords = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('http://localhost:5000/api/setoran');
-      if (!res.ok) throw new Error('Gagal memuat data dari server.');
-      
-      const records = await res.json();
-      setDeposits(records);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRecords();
-  }, []);
 
   // Filter records by the selected date
   const filtered = deposits.filter(
@@ -90,9 +57,7 @@ export default function RekapTanggal() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-        </div>
+        <LoadingSpinner />
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center text-slate-400 flex flex-col items-center justify-center space-y-2">
           <AlertCircle className="h-10 w-10 text-slate-300" />

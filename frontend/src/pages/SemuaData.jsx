@@ -1,23 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { downloadPDFSemuaData } from '../utils/pdfGenerator';
+import { downloadPDFSemuaData } from '../services/pdfGenerator';
 import { Search, SlidersHorizontal, Trash2, Edit, Printer, FileText, X, AlertCircle } from 'lucide-react';
-
-const formatRupiah = (value) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(value);
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-};
+import { formatRupiah, formatDate, RT_LIST, WASTE_TYPES, INDONESIAN_MONTHS } from '../constants';
+import { api } from '../services/api';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 export default function SemuaData() {
   const [data, setData] = useState([]);
@@ -57,11 +43,8 @@ export default function SemuaData() {
       if (filters.bulan) params.append('bulan', filters.bulan);
       if (filters.tahun) params.append('tahun', filters.tahun);
 
-      const res = await fetch(`http://localhost:5000/api/setoran?${params.toString()}`);
-      if (!res.ok) throw new Error('Gagal mengambil data dari server.');
-      
-      const records = await res.json();
-      setData(records);
+      const res = await api.get(`/api/setoran?${params.toString()}`);
+      setData(res);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -93,11 +76,7 @@ export default function SemuaData() {
     if (!window.confirm('Apakah Anda yakin ingin menghapus data setoran ini?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/setoran/${id}`, {
-        method: 'DELETE'
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || 'Gagal menghapus data.');
+      await api.delete(`/api/setoran/${id}`);
 
       alert('Data berhasil dihapus.');
       fetchRecords();
@@ -149,19 +128,12 @@ export default function SemuaData() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/setoran/${editItem.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...editForm,
-          rt: Number(editForm.rt),
-          berat: beratNum,
-          harga_per_kg: hargaNum
-        })
+      await api.put(`/api/setoran/${editItem.id}`, {
+        ...editForm,
+        rt: Number(editForm.rt),
+        berat: beratNum,
+        harga_per_kg: hargaNum
       });
-
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || 'Gagal mengubah data.');
 
       setEditItem(null); // Close modal
       fetchRecords();
@@ -174,8 +146,7 @@ export default function SemuaData() {
   const handlePDFExport = async () => {
     try {
       // We need RT Recap in order to generate section 2 of the overall PDF
-      const recapRes = await fetch('http://localhost:5000/api/setoran/rekap-rt');
-      const rtRecap = await recapRes.json();
+      const rtRecap = await api.get('/api/setoran/rekap-rt');
       downloadPDFSemuaData(data, rtRecap);
     } catch (err) {
       alert('Gagal mendownload PDF: ' + err.message);
@@ -310,9 +281,7 @@ export default function SemuaData() {
       {/* Main Table Grid */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center p-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-          </div>
+          <LoadingSpinner />
         ) : data.length === 0 ? (
           <div className="p-8 text-center text-slate-400">
             Tidak ada data transaksi setoran yang sesuai filter.
@@ -414,8 +383,8 @@ export default function SemuaData() {
                     onChange={(e) => setEditForm(prev => ({ ...prev, rt: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
                   >
-                    {[...Array(9)].map((_, i) => (
-                      <option key={i + 1} value={i + 1}>RT 0{i + 1}</option>
+                    {RT_LIST.map((rt) => (
+                      <option key={rt} value={rt}>RT 0{rt}</option>
                     ))}
                   </select>
                 </div>
@@ -440,12 +409,9 @@ export default function SemuaData() {
                     onChange={(e) => setEditForm(prev => ({ ...prev, jenis_sampah: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
                   >
-                    <option value="Plastik">Plastik</option>
-                    <option value="Kertas">Kertas</option>
-                    <option value="Kardus">Kardus</option>
-                    <option value="Kaleng">Kaleng</option>
-                    <option value="Botol">Botol</option>
-                    <option value="Lainnya">Lainnya</option>
+                    {WASTE_TYPES.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-1">
