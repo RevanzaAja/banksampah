@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 // Helper: Format currency in IDR
 const formatRupiah = (value) => {
@@ -164,7 +164,7 @@ export const downloadPDFPerTanggal = (date, deposits) => {
   const totalWeight = filtered.reduce((acc, r) => acc + Number(r.berat), 0);
   const totalMoney = filtered.reduce((acc, r) => acc + (Number(r.berat) * Number(r.harga_per_kg)), 0);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 40,
     head: tableHeaders,
     body: tableData,
@@ -229,7 +229,7 @@ export const downloadPDFSemuaData = (deposits, rtRecap) => {
     formatRupiah(item.total_uang)
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 68,
     head: rtHeaders,
     body: rtData,
@@ -264,7 +264,7 @@ export const downloadPDFSemuaData = (deposits, rtRecap) => {
     formatRupiah(Number(row.berat) * Number(row.harga_per_kg))
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: nextY > 240 ? 24 : nextY + 4,
     head: transHeaders,
     body: transData,
