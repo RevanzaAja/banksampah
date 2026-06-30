@@ -21,8 +21,8 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Initialize DB Connection
-initModels();
+// Initialize DB Connection (Only authenticate, skip sync in serverless)
+sequelize.authenticate().then(() => console.log('DB Connected')).catch(err => console.error('DB Error', err));
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
@@ -49,8 +49,10 @@ app.use('/api/backup', backupRoutes);
 // Error Handling Middleware
 app.use(errorHandler);
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Start Server locally (Vercel uses the exported app)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
 module.exports = app;
