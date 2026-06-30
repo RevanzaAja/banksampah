@@ -22,23 +22,7 @@ export default function HasilPenjualan() {
   const [calculationResult, setCalculationResult] = useState(null);
   const [calcLoading, setCalcLoading] = useState(false);
 
-  const fetchSales = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('http://localhost:5000/api/penjualan');
-      if (!res.ok) throw new Error('Gagal mengambil data penjualan.');
-      const data = await res.json();
-      setSales(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchSales();
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
