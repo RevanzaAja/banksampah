@@ -137,27 +137,7 @@ export default function FormSetoran() {
             </p>
           </div>
 
-          {/* Price Guide Badge */}
-          <div className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-4">
-            <div className="flex items-center space-x-2 mb-2.5">
-              <Info className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Harga Standar per Jenis Sampah</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(WASTE_PRICES).map(([type, price]) => (
-                <span
-                  key={type}
-                  className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    formData.jenis_sampah === type
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'bg-white text-slate-600 border border-slate-200'
-                  }`}
-                >
-                  {type}: {formatRupiah(price)}/Kg
-                </span>
-              ))}
-            </div>
-          </div>
+
 
           {/* Notifications */}
           {success && (
