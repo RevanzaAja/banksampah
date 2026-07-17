@@ -34,7 +34,11 @@ export default function SemuaData() {
 
   const fetchRecords = async () => {
     try {
-      setLoading(true);
+      // Only show hard loading state if we don't have data yet to prevent flickers
+      if (data.length === 0) {
+        setLoading(true);
+      }
+      
       // Query parameters construction
       const params = new URLSearchParams();
       if (filters.search) params.append('search', filters.search);
