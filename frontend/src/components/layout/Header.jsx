@@ -27,7 +27,7 @@ export default function Header() {
               <Recycle className="h-6 w-6" />
             </div>
             <div>
-              <span className="font-extrabold text-lg tracking-wider block leading-none">BSM BERSIH</span>
+              <span className="font-extrabold text-base tracking-wide block leading-none">BSM GADINGKASRI RW 1</span>
               <span className="text-[10px] text-emerald-200 tracking-widest uppercase font-semibold">Bank Sampah Mandiri</span>
             </div>
           </Link>

@@ -25,7 +25,7 @@ const drawHeader = (doc, title, subtitle) => {
   doc.setFont('Helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(22, 101, 52); // Forest green
-  doc.text('BANK SAMPAH MANDIRI (BSM BERSIH)', doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+  doc.text('BANK SAMPAH MANDIRI (BSM GADINGKASRI RW 1)', doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
   
   doc.setLineWidth(0.5);
   doc.setDrawColor(22, 101, 52);
