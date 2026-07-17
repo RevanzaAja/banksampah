@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Banknote, Percent, Weight, ChevronRight, Calculator, AlertCircle, HelpCircle } from 'lucide-react';
+import { Banknote, Percent, Weight, ChevronRight, ChevronDown, Calculator, AlertCircle, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { formatRupiah, formatDate } from '../constants';
 import { api } from '../services/api';
 import useFetch from '../hooks/useFetch';
@@ -16,13 +16,15 @@ export default function HasilPenjualan() {
     total_hasil_penjualan: ''
   });
   const [formError, setFormError] = useState(null);
+  const [formSuccess, setFormSuccess] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
 
   // Sharing calculation results state
   const [calculationResult, setCalculationResult] = useState(null);
   const [calcLoading, setCalcLoading] = useState(false);
 
-
+  // Accordion state for formula guide
+  const [showGuide, setShowGuide] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,6 +34,7 @@ export default function HasilPenjualan() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
+    setFormSuccess(false);
 
     // Validation
     const beratNum = Number(form.total_berat);
@@ -61,6 +64,9 @@ export default function HasilPenjualan() {
         total_hasil_penjualan: ''
       });
 
+      setFormSuccess(true);
+      setTimeout(() => setFormSuccess(false), 4000);
+
       fetchSales();
     } catch (err) {
       setFormError(err.message);
@@ -84,13 +90,19 @@ export default function HasilPenjualan() {
     }
   };
 
+  // Live preview for allocation
+  const hasilNum = Number(form.total_hasil_penjualan) || 0;
+  const previewKas = hasilNum * 0.2;
+  const previewJasa = hasilNum * 0.3;
+  const previewWarga = hasilNum * 0.5;
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Hasil Penjualan BSM</h1>
+        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Penjualan BSM</h1>
         <p className="text-slate-500 text-sm mt-1">
-          Kelola hasil penjualan sampah grosir dari gudang Bank Sampah dan hitung pembagian hasil otomatis untuk kas, pengelola, serta warga secara proporsional.
+          Catat hasil penjualan sampah dan hitung pembagian hasil otomatis untuk kas, pengelola, dan warga.
         </p>
       </div>
 
@@ -110,6 +122,13 @@ export default function HasilPenjualan() {
               </div>
             )}
 
+            {formSuccess && (
+              <div className="flex items-center space-x-2 bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl animate-fade-in">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                <span className="text-xs font-semibold">Data penjualan berhasil disimpan!</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600 uppercase">Tanggal Penjualan</label>
@@ -124,13 +143,13 @@ export default function HasilPenjualan() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-600 uppercase">Total Berat Terjual (Kg)</label>
+                <label className="text-xs font-bold text-slate-600 uppercase">Berapa total berat yang dijual? (Kg)</label>
                 <input
                   type="number"
                   step="0.01"
                   name="total_berat"
                   required
-                  placeholder="0.0"
+                  placeholder="Contoh: 150"
                   value={form.total_berat}
                   onChange={handleChange}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-slate-800 bg-slate-50"
@@ -138,17 +157,47 @@ export default function HasilPenjualan() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-600 uppercase">Total Pendapatan Penjualan (Rp)</label>
+                <label className="text-xs font-bold text-slate-600 uppercase">Berapa total uang yang diterima? (Rp)</label>
                 <input
                   type="number"
                   name="total_hasil_penjualan"
                   required
-                  placeholder="Rp"
+                  placeholder="Contoh: 1000000"
                   value={form.total_hasil_penjualan}
                   onChange={handleChange}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-slate-800 bg-slate-50"
                 />
               </div>
+
+              {/* Live Allocation Preview */}
+              {hasilNum > 0 && (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 animate-fade-in">
+                  <span className="text-xs font-bold text-slate-500 uppercase">Preview Pembagian</span>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-amber-700 font-semibold">20% Kas BSM</span>
+                      <span className="font-bold text-amber-800">{formatRupiah(previewKas)}</span>
+                    </div>
+                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-500 rounded-full" style={{ width: '20%' }}></div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-blue-700 font-semibold">30% Jasa Pengelola</span>
+                      <span className="font-bold text-blue-800">{formatRupiah(previewJasa)}</span>
+                    </div>
+                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 rounded-full" style={{ width: '30%' }}></div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-emerald-700 font-semibold">50% Dana Warga</span>
+                      <span className="font-bold text-emerald-800">{formatRupiah(previewWarga)}</span>
+                    </div>
+                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: '50%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -160,88 +209,40 @@ export default function HasilPenjualan() {
             </form>
           </div>
 
-          {/* Formula & Simulation Guide Card */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center space-x-2 border-b border-slate-100 pb-2">
-              <HelpCircle className="h-4.5 w-4.5 text-emerald-600" />
-              <span>Panduan Rumus Pembagian</span>
-            </h3>
-            <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
-              <p>
-                Ketika tombol <strong>"Hitung Pembagian"</strong> ditekan, sistem membagi total pendapatan penjualan grosir sebagai berikut:
-              </p>
-              <ul className="list-disc pl-4 space-y-1">
-                <li><strong>20% Kas BSM:</strong> Untuk kas operasional Bank Sampah.</li>
-                <li><strong>30% Jasa Pengelola:</strong> Untuk biaya operasional pengelola.</li>
-                <li><strong>50% Dana Warga:</strong> Dibagi secara proporsional kepada semua warga penyetor.</li>
-              </ul>
-              <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100 space-y-2 mt-2">
-                <span className="block font-bold text-emerald-800">Rumus Proporsional Warga:</span>
-                <code className="block bg-white p-1.5 rounded border border-emerald-200 font-mono text-[10px] text-slate-700 leading-normal">
-                  Nilai per Kg = Dana Warga / Total Kg Setoran Semua Warga
-                </code>
-                <code className="block bg-white p-1.5 rounded border border-emerald-200 font-mono text-[10px] text-slate-700 leading-normal">
-                  Hak Uang Warga = Total Kg Setoran Warga × Nilai per Kg
-                </code>
+          {/* Collapsible Formula Guide */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <button
+              onClick={() => setShowGuide(!showGuide)}
+              className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+            >
+              <div className="flex items-center space-x-2">
+                <HelpCircle className="h-4 w-4 text-emerald-600" />
+                <span className="font-bold text-slate-700 text-sm">Cara Pembagian Hasil</span>
               </div>
-              <p className="text-[10px] text-slate-400">
-                *Contoh: Hasil penjualan Rp 1.000.000 (Dana Warga Rp 500.000). Jika total berat setoran seluruh warga adalah 98 Kg, maka per Kg sampah bernilai Rp 5.102.
-              </p>
-
-              <div className="space-y-1.5 mt-2 border-t border-slate-100 pt-3">
-                <span className="block font-bold text-slate-700">Simulasi Pembagian per Warga:</span>
-                <div className="border border-slate-100 rounded-lg overflow-hidden mt-1">
-                  <table className="w-full text-[10px] text-left border-collapse bg-slate-50">
-                    <thead>
-                      <tr className="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                        <th className="px-2.5 py-1">Nama</th>
-                        <th className="px-2.5 py-1 text-center">RT</th>
-                        <th className="px-2.5 py-1 text-right">Setoran</th>
-                        <th className="px-2.5 py-1 text-right">Uang</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      <tr>
-                        <td className="px-2.5 py-1 font-semibold">Joko</td>
-                        <td className="px-2.5 py-1 text-center">RT 03</td>
-                        <td className="px-2.5 py-1 text-right">40 Kg</td>
-                        <td className="px-2.5 py-1 text-right font-bold text-emerald-700">Rp 204.082</td>
-                      </tr>
-                      <tr>
-                        <td className="px-2.5 py-1 font-semibold">Agus</td>
-                        <td className="px-2.5 py-1 text-center">RT 03</td>
-                        <td className="px-2.5 py-1 text-right">20 Kg</td>
-                        <td className="px-2.5 py-1 text-right font-bold text-emerald-700">Rp 102.041</td>
-                      </tr>
-                      <tr>
-                        <td className="px-2.5 py-1 font-semibold">Aminah</td>
-                        <td className="px-2.5 py-1 text-center">RT 03</td>
-                        <td className="px-2.5 py-1 text-right">15 Kg</td>
-                        <td className="px-2.5 py-1 text-right font-bold text-emerald-700">Rp 76.531</td>
-                      </tr>
-                      <tr>
-                        <td className="px-2.5 py-1 font-semibold">Lani</td>
-                        <td className="px-2.5 py-1 text-center">RT 05</td>
-                        <td className="px-2.5 py-1 text-right">10 Kg</td>
-                        <td className="px-2.5 py-1 text-right font-bold text-emerald-700">Rp 51.020</td>
-                      </tr>
-                      <tr>
-                        <td className="px-2.5 py-1 font-semibold">Budi</td>
-                        <td className="px-2.5 py-1 text-center">RT 01</td>
-                        <td className="px-2.5 py-1 text-right">8 Kg</td>
-                        <td className="px-2.5 py-1 text-right font-bold text-emerald-700">Rp 40.816</td>
-                      </tr>
-                      <tr>
-                        <td className="px-2.5 py-1 font-semibold">Siti</td>
-                        <td className="px-2.5 py-1 text-center">RT 01</td>
-                        <td className="px-2.5 py-1 text-right">5 Kg</td>
-                        <td className="px-2.5 py-1 text-right font-bold text-emerald-700">Rp 25.510</td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${showGuide ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {showGuide && (
+              <div className="px-5 pb-5 space-y-3 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-4 animate-fade-in">
+                <p>
+                  Total pendapatan penjualan grosir dibagi sebagai berikut:
+                </p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li><strong>20% Kas BSM:</strong> Untuk kas operasional Bank Sampah.</li>
+                  <li><strong>30% Jasa Pengelola:</strong> Untuk biaya operasional pengelola.</li>
+                  <li><strong>50% Dana Warga:</strong> Dibagi proporsional berdasarkan berat setoran warga.</li>
+                </ul>
+                <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100 space-y-2 mt-2">
+                  <span className="block font-bold text-emerald-800">Rumus Proporsional Warga:</span>
+                  <code className="block bg-white p-1.5 rounded border border-emerald-200 font-mono text-[10px] text-slate-700 leading-normal">
+                    Nilai per Kg = Dana Warga / Total Kg Setoran Semua Warga
+                  </code>
+                  <code className="block bg-white p-1.5 rounded border border-emerald-200 font-mono text-[10px] text-slate-700 leading-normal">
+                    Hak Uang Warga = Total Kg Setoran Warga × Nilai per Kg
+                  </code>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -256,7 +257,7 @@ export default function HasilPenjualan() {
               <LoadingSpinner />
             ) : sales.length === 0 ? (
               <div className="p-8 text-center text-slate-400">
-                Belum ada data penjualan BSM yang terinput.
+                Belum ada data penjualan BSM. Mulai catat penjualan pertama di form sebelah kiri.
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -355,7 +356,7 @@ export default function HasilPenjualan() {
               <span className="font-bold text-slate-800">{calculationResult.salesDetail.total_berat_deposit} Kg</span>
             </div>
             <div className="flex justify-between border-t border-slate-200/60 pt-1 mt-1 font-semibold text-emerald-800">
-              <span>Nilai proporsional per Kg (Dana Warga / Total Sampah) :</span>
+              <span>Nilai proporsional per Kg :</span>
               <span className="font-bold">{formatRupiah(calculationResult.salesDetail.nilai_per_kg)} / Kg</span>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { downloadPDFSemuaData } from '../services/pdfGenerator';
-import { Search, SlidersHorizontal, Trash2, Edit, Printer, FileText, X, AlertCircle } from 'lucide-react';
+import { Search, SlidersHorizontal, Trash2, Edit, Printer, FileText, X, AlertCircle, Weight, Banknote, Hash } from 'lucide-react';
 import { formatRupiah, formatDate, RT_LIST, WASTE_TYPES, INDONESIAN_MONTHS } from '../constants';
 import { api } from '../services/api';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -153,15 +153,22 @@ export default function SemuaData() {
     }
   };
 
+  // Summary calculations
+  const totalRecords = data.length;
+  const totalWeight = data.reduce((acc, r) => acc + Number(r.berat), 0);
+  const totalValue = data.reduce((acc, r) => acc + (Number(r.berat) * Number(r.harga_per_kg)), 0);
+
+  const hasActiveFilter = filters.search || filters.rt || filters.tanggal || filters.bulan || filters.tahun;
+
   return (
     <div className="space-y-6">
       
       {/* Header (Hidden on print) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Semua Data Setoran</h1>
+          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Data Setoran</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Daftar lengkap transaksi setoran sampah warga. Gunakan filter untuk merapikan visualisasi data.
+            Semua riwayat transaksi setoran sampah warga. Gunakan filter untuk mempersempit data.
           </p>
         </div>
         <div className="flex items-center space-x-3">
@@ -170,7 +177,7 @@ export default function SemuaData() {
             className="flex items-center space-x-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-4 py-2.5 rounded-xl shadow-sm transition-all"
           >
             <Printer className="h-4.5 w-4.5" />
-            <span>Cetak Halaman</span>
+            <span>Cetak</span>
           </button>
           <button
             onClick={handlePDFExport}
@@ -184,9 +191,20 @@ export default function SemuaData() {
 
       {/* Filter Panel (Hidden on print) */}
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4 print:hidden">
-        <div className="flex items-center space-x-2 text-slate-700 font-bold text-sm">
-          <SlidersHorizontal className="h-4.5 w-4.5 text-emerald-600" />
-          <span>Filter & Pencarian</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2 text-slate-700 font-bold text-sm">
+            <SlidersHorizontal className="h-4.5 w-4.5 text-emerald-600" />
+            <span>Filter & Pencarian</span>
+          </div>
+          {hasActiveFilter && (
+            <button
+              onClick={handleClearFilters}
+              className="text-xs text-red-600 hover:text-red-800 font-semibold transition-colors flex items-center space-x-1"
+            >
+              <X className="h-3 w-3" />
+              <span>Reset Filter</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -260,16 +278,6 @@ export default function SemuaData() {
             <option value="2024">2024</option>
           </select>
         </div>
-
-        {/* Clear filter button */}
-        {(filters.search || filters.rt || filters.tanggal || filters.bulan || filters.tahun) && (
-          <button
-            onClick={handleClearFilters}
-            className="text-xs text-red-600 hover:text-red-800 font-semibold transition-colors"
-          >
-            × Hapus Semua Filter
-          </button>
-        )}
       </div>
 
       {/* Printable Title */}
@@ -278,13 +286,49 @@ export default function SemuaData() {
         <p className="text-sm text-slate-500">Dicetak pada: {formatDate(new Date())}</p>
       </div>
 
+      {/* Summary Bar */}
+      {!loading && data.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 print:hidden">
+          <div className="bg-white border border-slate-100 rounded-xl p-4 flex items-center space-x-3 shadow-sm">
+            <div className="bg-slate-100 p-2.5 rounded-lg">
+              <Hash className="h-4 w-4 text-slate-600" />
+            </div>
+            <div>
+              <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Record</span>
+              <span className="block text-lg font-bold text-slate-800">{totalRecords} Transaksi</span>
+            </div>
+          </div>
+          <div className="bg-white border border-slate-100 rounded-xl p-4 flex items-center space-x-3 shadow-sm">
+            <div className="bg-emerald-50 p-2.5 rounded-lg">
+              <Weight className="h-4 w-4 text-emerald-600" />
+            </div>
+            <div>
+              <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Berat</span>
+              <span className="block text-lg font-bold text-slate-800">{totalWeight.toFixed(1)} Kg</span>
+            </div>
+          </div>
+          <div className="bg-white border border-slate-100 rounded-xl p-4 flex items-center space-x-3 shadow-sm">
+            <div className="bg-blue-50 p-2.5 rounded-lg">
+              <Banknote className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Nilai</span>
+              <span className="block text-lg font-bold text-slate-800">{formatRupiah(totalValue)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Table Grid */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         {loading ? (
           <LoadingSpinner />
         ) : data.length === 0 ? (
           <div className="p-8 text-center text-slate-400">
-            Tidak ada data transaksi setoran yang sesuai filter.
+            {hasActiveFilter 
+              ? 'Tidak ada data yang sesuai dengan filter. Coba ubah atau reset filter.'
+              : 'Belum ada data transaksi setoran.'
+            }
           </div>
         ) : (
           <div className="overflow-x-auto">

@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Weight, Banknote, Users, BarChart3, HelpCircle } from 'lucide-react';
+import { Weight, Banknote, Users, BarChart3, HelpCircle, PenLine, ClipboardList, FileText } from 'lucide-react';
 import { formatRupiah, INDONESIAN_MONTHS } from '../constants';
 import useFetch from '../hooks/useFetch';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -80,12 +81,32 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Dashboard Ringkasan</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Pantau statistik volume sampah terkumpul dan riwayat hasil penjualan BSM (Bank Sampah Mandiri).
-        </p>
+      {/* Page Header + Quick Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Dashboard Ringkasan</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Pantau statistik volume sampah terkumpul dan riwayat hasil penjualan BSM (Bank Sampah Mandiri).
+          </p>
+        </div>
+
+        {/* Quick Action Buttons */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            to="/input-setoran"
+            className="inline-flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-sm hover:shadow-md transition-all text-sm"
+          >
+            <PenLine className="h-4 w-4" />
+            <span>Input Setoran</span>
+          </Link>
+          <Link
+            to="/semua-data"
+            className="inline-flex items-center space-x-1.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-4 py-2.5 rounded-xl shadow-sm border border-slate-200 hover:border-slate-300 transition-all text-sm"
+          >
+            <ClipboardList className="h-4 w-4" />
+            <span>Lihat Data</span>
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}

@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Recycle, LayoutDashboard, Table, Users, Calendar, Banknote, Database, Menu, X } from 'lucide-react';
+import { Recycle, LayoutDashboard, ClipboardList, Users, CalendarDays, Banknote, Menu, X, PenLine } from 'lucide-react';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
   const menuItems = [
-    { name: 'Form Setoran', path: '/', icon: Recycle },
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Semua Data', path: '/semua-data', icon: Table },
-    { name: 'Rekap RT', path: '/rekap-rt', icon: Users },
-    { name: 'Rekap Tanggal', path: '/rekap-tanggal', icon: Calendar },
-    { name: 'Hasil Penjualan BSM', path: '/hasil-penjualan', icon: Banknote },
-    { name: 'Backup Data', path: '/backup-data', icon: Database },
+    { name: 'Dashboard', subtitle: 'Ringkasan & Statistik', path: '/', icon: LayoutDashboard },
+    { name: 'Input Setoran', subtitle: 'Catat setoran warga', path: '/input-setoran', icon: PenLine },
+    { name: 'Data Setoran', subtitle: 'Semua riwayat transaksi', path: '/semua-data', icon: ClipboardList },
+    { name: 'Rekap RT', subtitle: 'Laporan per RT', path: '/rekap-rt', icon: Users },
+    { name: 'Rekap Harian', subtitle: 'Laporan per tanggal', path: '/rekap-tanggal', icon: CalendarDays },
+    { name: 'Penjualan', subtitle: 'Hasil penjualan BSM', path: '/hasil-penjualan', icon: Banknote },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -77,14 +76,17 @@ export default function Header() {
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-base font-medium transition-all duration-200 ${
+                  className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 ${
                     isActive(item.path)
                       ? 'bg-emerald-950 text-white shadow-inner border-l-4 border-emerald-400'
                       : 'hover:bg-emerald-800 text-emerald-100'
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.name}</span>
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <div>
+                    <span className="block text-base font-medium">{item.name}</span>
+                    <span className="block text-xs text-emerald-300/70">{item.subtitle}</span>
+                  </div>
                 </Link>
               );
             })}
