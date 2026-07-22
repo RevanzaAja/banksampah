@@ -13,12 +13,13 @@ exports.getAllSales = async (req, res, next) => {
 
 exports.createSale = async (req, res, next) => {
   try {
-    const { tanggal_penjualan, total_berat, total_hasil_penjualan } = req.body;
+    const { tanggal_penjualan, rt, total_berat, total_hasil_penjualan } = req.body;
     
-    if (!tanggal_penjualan || total_berat === undefined || total_hasil_penjualan === undefined) {
+    if (!tanggal_penjualan || rt === undefined || total_berat === undefined || total_hasil_penjualan === undefined) {
       return res.status(400).json({ message: 'Semua field wajib diisi.' });
     }
     
+    const rtNum = Number(rt);
     const beratNum = Number(total_berat);
     const hasilNum = Number(total_hasil_penjualan);
     
@@ -35,6 +36,7 @@ exports.createSale = async (req, res, next) => {
 
     await PenjualanBSM.create({
       tanggal_penjualan,
+      rt: rtNum,
       total_berat: beratNum,
       total_hasil_penjualan: hasilNum,
       kas_bank_sampah: kas,
@@ -72,7 +74,10 @@ exports.getSharingCalculations = async (req, res, next) => {
       return res.status(404).json({ message: 'Data penjualan tidak ditemukan.' });
     }
 
-    const deposits = await Setoran.findAll();
+    const saleRt = sale.rt;
+    const deposits = await Setoran.findAll({
+      where: saleRt ? { rt: saleRt } : {}
+    });
     
     const totalBeratAll = deposits.reduce((acc, item) => acc + Number(item.berat), 0);
     const danaWarga = Number(sale.dana_warga);
@@ -113,6 +118,7 @@ exports.getSharingCalculations = async (req, res, next) => {
         kas_bank_sampah: Number(sale.kas_bank_sampah),
         dana_warga: danaWarga,
         jasa_pengelola: Number(sale.jasa_pengelola),
+        rt_penjualan: saleRt,
         total_berat_deposit: Number(totalBeratAll.toFixed(2)),
         nilai_per_kg: Number(nilaiPerKg.toFixed(2))
       },

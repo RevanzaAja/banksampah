@@ -11,6 +11,10 @@ const PenjualanBSM = sequelize.define('PenjualanBSM', {
     type: DataTypes.DATEONLY,
     allowNull: false
   },
+  rt: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
   total_berat: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false

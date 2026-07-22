@@ -12,6 +12,7 @@ export default function HasilPenjualan() {
   // Form input state
   const [form, setForm] = useState({
     tanggal_penjualan: new Date().toISOString().split('T')[0],
+    rt: '',
     total_berat: '',
     total_hasil_penjualan: ''
   });
@@ -37,6 +38,11 @@ export default function HasilPenjualan() {
     setFormSuccess(false);
 
     // Validation
+    const rtNum = Number(form.rt);
+    if (isNaN(rtNum) || rtNum <= 0) {
+      setFormError('Nomor RT harus diisi dengan angka yang valid.');
+      return;
+    }
     const beratNum = Number(form.total_berat);
     if (isNaN(beratNum) || beratNum <= 0) {
       setFormError('Total berat harus lebih besar dari 0.');
@@ -53,6 +59,7 @@ export default function HasilPenjualan() {
     try {
       await api.post('/api/penjualan', {
         tanggal_penjualan: form.tanggal_penjualan,
+        rt: rtNum,
         total_berat: beratNum,
         total_hasil_penjualan: hasilNum
       });
@@ -60,6 +67,7 @@ export default function HasilPenjualan() {
       // Reset form
       setForm({
         tanggal_penjualan: new Date().toISOString().split('T')[0],
+        rt: '',
         total_berat: '',
         total_hasil_penjualan: ''
       });
@@ -137,6 +145,19 @@ export default function HasilPenjualan() {
                   name="tanggal_penjualan"
                   required
                   value={form.tanggal_penjualan}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-slate-800 bg-slate-50"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600 uppercase">RT Berapa?</label>
+                <input
+                  type="number"
+                  name="rt"
+                  required
+                  placeholder="Contoh: 1, 2, 3"
+                  value={form.rt}
                   onChange={handleChange}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-slate-800 bg-slate-50"
                 />
@@ -265,6 +286,7 @@ export default function HasilPenjualan() {
                   <thead>
                     <tr className="bg-slate-50/30 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
                       <th className="px-6 py-4">Tanggal</th>
+                      <th className="px-6 py-4">RT</th>
                       <th className="px-6 py-4">Berat Terjual</th>
                       <th className="px-6 py-4">Total Hasil</th>
                       <th className="px-6 py-4 text-right">Kalkulasi</th>
@@ -274,6 +296,7 @@ export default function HasilPenjualan() {
                     {sales.map((row) => (
                       <tr key={row.id} className="hover:bg-slate-50/50 transition-all">
                         <td className="px-6 py-4 font-semibold text-slate-800">{formatDate(row.tanggal_penjualan)}</td>
+                        <td className="px-6 py-4">RT {row.rt || '-'}</td>
                         <td className="px-6 py-4">{row.total_berat} Kg</td>
                         <td className="px-6 py-4 font-bold text-emerald-800">{formatRupiah(row.total_hasil_penjualan)}</td>
                         <td className="px-6 py-4 text-right">
@@ -309,7 +332,7 @@ export default function HasilPenjualan() {
           <div className="border-b border-slate-100 pb-5">
             <h2 className="text-xl font-bold text-slate-800">Hasil Pembagian Otomatis</h2>
             <p className="text-slate-500 text-xs mt-0.5">
-              Penjualan Tanggal {formatDate(calculationResult.salesDetail.tanggal_penjualan)} | Total {formatRupiah(calculationResult.salesDetail.total_hasil_penjualan)}
+              Penjualan Tanggal {formatDate(calculationResult.salesDetail.tanggal_penjualan)} {calculationResult.salesDetail.rt_penjualan ? `(RT ${calculationResult.salesDetail.rt_penjualan})` : ''} | Total {formatRupiah(calculationResult.salesDetail.total_hasil_penjualan)}
             </p>
           </div>
 
