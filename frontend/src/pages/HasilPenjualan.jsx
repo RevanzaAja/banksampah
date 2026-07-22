@@ -10,9 +10,15 @@ export default function HasilPenjualan() {
   const sales = salesData || [];
 
   // Form input state
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+
   const [form, setForm] = useState({
-    tanggal_penjualan: new Date().toISOString().split('T')[0],
+    tanggal_penjualan: today.toISOString().split('T')[0],
     rt: '',
+    periode_mulai: firstDay,
+    periode_selesai: lastDay,
     total_berat: '',
     total_hasil_penjualan: ''
   });
@@ -43,6 +49,12 @@ export default function HasilPenjualan() {
       setFormError('Nomor RT harus diisi dengan angka yang valid.');
       return;
     }
+    
+    if (new Date(form.periode_mulai) > new Date(form.periode_selesai)) {
+      setFormError('Periode mulai tidak boleh lebih dari periode selesai.');
+      return;
+    }
+
     const beratNum = Number(form.total_berat);
     if (isNaN(beratNum) || beratNum <= 0) {
       setFormError('Total berat harus lebih besar dari 0.');
@@ -60,6 +72,8 @@ export default function HasilPenjualan() {
       await api.post('/api/penjualan', {
         tanggal_penjualan: form.tanggal_penjualan,
         rt: rtNum,
+        periode_mulai: form.periode_mulai,
+        periode_selesai: form.periode_selesai,
         total_berat: beratNum,
         total_hasil_penjualan: hasilNum
       });
@@ -68,6 +82,8 @@ export default function HasilPenjualan() {
       setForm({
         tanggal_penjualan: new Date().toISOString().split('T')[0],
         rt: '',
+        periode_mulai: firstDay,
+        periode_selesai: lastDay,
         total_berat: '',
         total_hasil_penjualan: ''
       });
@@ -161,6 +177,31 @@ export default function HasilPenjualan() {
                   onChange={handleChange}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-slate-800 bg-slate-50"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Setoran Dari Tgl</label>
+                  <input
+                    type="date"
+                    name="periode_mulai"
+                    required
+                    value={form.periode_mulai}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-slate-800 bg-slate-50"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Setoran Sampai Tgl</label>
+                  <input
+                    type="date"
+                    name="periode_selesai"
+                    required
+                    value={form.periode_selesai}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-slate-800 bg-slate-50"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1">
@@ -285,9 +326,10 @@ export default function HasilPenjualan() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/30 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
-                      <th className="px-6 py-4">Tanggal</th>
+                      <th className="px-6 py-4">Tanggal Jual</th>
+                      <th className="px-6 py-4">Periode Setoran</th>
                       <th className="px-6 py-4">RT</th>
-                      <th className="px-6 py-4">Berat Terjual</th>
+                      <th className="px-6 py-4">Berat</th>
                       <th className="px-6 py-4">Total Hasil</th>
                       <th className="px-6 py-4 text-right">Kalkulasi</th>
                     </tr>
@@ -296,7 +338,12 @@ export default function HasilPenjualan() {
                     {sales.map((row) => (
                       <tr key={row.id} className="hover:bg-slate-50/50 transition-all">
                         <td className="px-6 py-4 font-semibold text-slate-800">{formatDate(row.tanggal_penjualan)}</td>
-                        <td className="px-6 py-4">RT {row.rt || '-'}</td>
+                        <td className="px-6 py-4 text-xs font-medium text-slate-500 whitespace-nowrap">
+                          {row.periode_mulai && row.periode_selesai 
+                            ? `${formatDate(row.periode_mulai).split(' ')[0]} ${formatDate(row.periode_mulai).split(' ')[1].substring(0,3)} - ${formatDate(row.periode_selesai).split(' ')[0]} ${formatDate(row.periode_selesai).split(' ')[1].substring(0,3)}`
+                            : 'Semua'}
+                        </td>
+                        <td className="px-6 py-4 font-medium">RT {row.rt || '-'}</td>
                         <td className="px-6 py-4">{row.total_berat} Kg</td>
                         <td className="px-6 py-4 font-bold text-emerald-800">{formatRupiah(row.total_hasil_penjualan)}</td>
                         <td className="px-6 py-4 text-right">
@@ -331,8 +378,17 @@ export default function HasilPenjualan() {
           {/* Header detail */}
           <div className="border-b border-slate-100 pb-5">
             <h2 className="text-xl font-bold text-slate-800">Hasil Pembagian Otomatis</h2>
-            <p className="text-slate-500 text-xs mt-0.5">
-              Penjualan Tanggal {formatDate(calculationResult.salesDetail.tanggal_penjualan)} {calculationResult.salesDetail.rt_penjualan ? `(RT ${calculationResult.salesDetail.rt_penjualan})` : ''} | Total {formatRupiah(calculationResult.salesDetail.total_hasil_penjualan)}
+            <p className="text-slate-500 text-xs mt-1 leading-relaxed">
+              Penjualan Tanggal <span className="font-semibold">{formatDate(calculationResult.salesDetail.tanggal_penjualan)}</span> {calculationResult.salesDetail.rt_penjualan ? `(RT ${calculationResult.salesDetail.rt_penjualan})` : ''} | Total <span className="font-semibold text-emerald-700">{formatRupiah(calculationResult.salesDetail.total_hasil_penjualan)}</span>
+              <br/>
+              Periode Setoran Warga:{' '} 
+              {calculationResult.salesDetail.periode_mulai && calculationResult.salesDetail.periode_selesai ? (
+                <span className="font-semibold bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded ml-1 border border-emerald-100">
+                  {formatDate(calculationResult.salesDetail.periode_mulai)} s.d {formatDate(calculationResult.salesDetail.periode_selesai)}
+                </span>
+              ) : (
+                <span className="italic text-slate-400">Seluruh Waktu</span>
+              )}
             </p>
           </div>
 

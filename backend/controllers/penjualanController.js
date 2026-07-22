@@ -1,4 +1,5 @@
 const { PenjualanBSM, Setoran } = require('../models');
+const { Op } = require('sequelize');
 
 exports.getAllSales = async (req, res, next) => {
   try {
@@ -13,10 +14,14 @@ exports.getAllSales = async (req, res, next) => {
 
 exports.createSale = async (req, res, next) => {
   try {
-    const { tanggal_penjualan, rt, total_berat, total_hasil_penjualan } = req.body;
+    const { tanggal_penjualan, rt, periode_mulai, periode_selesai, total_berat, total_hasil_penjualan } = req.body;
     
-    if (!tanggal_penjualan || rt === undefined || total_berat === undefined || total_hasil_penjualan === undefined) {
+    if (!tanggal_penjualan || rt === undefined || !periode_mulai || !periode_selesai || total_berat === undefined || total_hasil_penjualan === undefined) {
       return res.status(400).json({ message: 'Semua field wajib diisi.' });
+    }
+    
+    if (new Date(periode_mulai) > new Date(periode_selesai)) {
+      return res.status(400).json({ message: 'Periode mulai tidak boleh lebih besar dari periode selesai.' });
     }
     
     const rtNum = Number(rt);
@@ -37,6 +42,8 @@ exports.createSale = async (req, res, next) => {
     await PenjualanBSM.create({
       tanggal_penjualan,
       rt: rtNum,
+      periode_mulai,
+      periode_selesai,
       total_berat: beratNum,
       total_hasil_penjualan: hasilNum,
       kas_bank_sampah: kas,
@@ -75,8 +82,18 @@ exports.getSharingCalculations = async (req, res, next) => {
     }
 
     const saleRt = sale.rt;
+    const whereClause = {};
+    if (saleRt) {
+      whereClause.rt = saleRt;
+    }
+    if (sale.periode_mulai && sale.periode_selesai) {
+      whereClause.tanggal_setor = {
+        [Op.between]: [sale.periode_mulai, sale.periode_selesai]
+      };
+    }
+
     const deposits = await Setoran.findAll({
-      where: saleRt ? { rt: saleRt } : {}
+      where: whereClause
     });
     
     const totalBeratAll = deposits.reduce((acc, item) => acc + Number(item.berat), 0);
@@ -119,6 +136,8 @@ exports.getSharingCalculations = async (req, res, next) => {
         dana_warga: danaWarga,
         jasa_pengelola: Number(sale.jasa_pengelola),
         rt_penjualan: saleRt,
+        periode_mulai: sale.periode_mulai,
+        periode_selesai: sale.periode_selesai,
         total_berat_deposit: Number(totalBeratAll.toFixed(2)),
         nilai_per_kg: Number(nilaiPerKg.toFixed(2))
       },
