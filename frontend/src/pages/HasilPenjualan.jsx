@@ -340,7 +340,7 @@ export default function HasilPenjualan() {
                         <td className="px-6 py-4 font-semibold text-slate-800">{formatDate(row.tanggal_penjualan)}</td>
                         <td className="px-6 py-4 text-xs font-medium text-slate-500 whitespace-nowrap">
                           {row.periode_mulai && row.periode_selesai 
-                            ? `${formatDate(row.periode_mulai).split(' ')[0]} ${formatDate(row.periode_mulai).split(' ')[1].substring(0,3)} - ${formatDate(row.periode_selesai).split(' ')[0]} ${formatDate(row.periode_selesai).split(' ')[1].substring(0,3)}`
+                            ? `${formatDate(row.periode_mulai)} s.d ${formatDate(row.periode_selesai)}`
                             : 'Semua'}
                         </td>
                         <td className="px-6 py-4 font-medium">RT {row.rt || '-'}</td>

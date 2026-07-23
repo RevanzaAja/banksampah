@@ -82,9 +82,15 @@ Halaman ini dipakai untuk melihat rekapitulasi penimbangan pada suatu hari terte
 Halaman ini sangat penting dipakai ketika tumpukan sampah di gudang BSM akhirnya diangkut dan dijual ke pengepul besar untuk dijadikan uang tunai.
 - **Cara pakai:**
   1. Klik menu **Penjualan** (ikon uang kertas).
-  2. Di kolom sebelah kiri, masukkan tanggal penjualan, total kilogram sampah yang dibawa pengepul, dan total uang kotor yang Anda terima. Lalu klik **Simpan Penjualan**.
-  3. Di kolom kanan, riwayat penjualan tadi akan muncul. Klik tombol **"Hitung Pembagian"** pada baris tersebut.
-  4. *Ajaib!* Sistem akan langsung menghitungkan jatah pembagian uang secara otomatis dan adil: 20% untuk Kas BSM, 30% untuk Jasa Pengelola, dan membagikan 50% sisanya kepada seluruh warga secara proporsional sesuai dengan banyaknya kilogram sampah yang mereka setor. Daftar nama warga penerima uang akan langsung keluar di bawahnya.
+  2. Di form sebelah kiri, Anda perlu mengisi rincian penjualan, antara lain:
+     - **Tanggal Penjualan**: Kapan transaksi ke pengepul dilakukan.
+     - **RT Berapa?**: Tentukan penjualan ini untuk kumpulan sampah RT berapa.
+     - **Setoran Dari Tgl & Sampai Tgl (Periode Setoran)**: Pilih rentang waktu penyetoran warga yang sampahnya ikut dijual pada saat itu (sistem akan otomatis menghitung pembagian uang hanya untuk warga yang menyetor pada periode tersebut).
+     - **Total Berat (Kg) & Total Uang Diterima (Rp)**: Masukkan berat total dan nominal uang kotor dari pengepul.
+     - Saat mengetik nominal, Anda akan langsung melihat pratinjau (preview) pembagian uang di bagian bawah form.
+  3. Klik tombol **Simpan Penjualan**.
+  4. Di sebelah kanan (tabel riwayat penjualan), klik tombol **"Hitung Pembagian"** pada baris data yang baru Anda buat.
+  5. *Ajaib!* Sistem akan langsung menghitungkan jatah pembagian uang secara otomatis dan adil: 20% untuk Kas BSM, 30% untuk Jasa Pengelola, dan membagikan 50% sisanya kepada seluruh warga yang terlibat secara proporsional sesuai dengan banyaknya kilogram sampah yang mereka setor (berdasarkan periode dan RT yang dipilih). Daftar nama warga penerima uang beserta rincian RT-nya akan langsung keluar di bawahnya.
 
 > **[SISIPKAN FOTO HALAMAN HASIL PENJUALAN DI SINI]**
 
